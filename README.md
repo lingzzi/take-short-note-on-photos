@@ -5,9 +5,10 @@ A mobile-first photo journal for keeping a short note with each moment.
 ## Run locally
 
 Open `index.html` in a browser. The page is static and does not need a build step.
-Use the camera button to take or choose a photo, add a note, then confirm to save
-the workout in that browser's IndexedDB storage. Photos are center-cropped to the
-card shape and converted to a size-optimized WebP before they are saved.
+Use the gallery button to choose a photo or the camera button to take one, add a
+note, then confirm to save the workout in that browser's IndexedDB storage.
+Photos are center-cropped to the card shape and converted to a size-optimized
+WebP before they are saved.
 Select a saved card to review it, tap its note to edit it, or use the delete
 button to remove the workout.
 

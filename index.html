@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#ece8e2" />
     <meta
       name="description"
@@ -20,8 +20,8 @@
   <body>
     <main class="gallery" aria-label="Gym tracker">
       <header class="topbar" aria-label="Workout actions">
-        <button class="icon-button" type="button" aria-label="Search workouts">
-          <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <button class="icon-button" id="gallery-photo-button" type="button" aria-label="Choose a photo from your gallery">
+          <span class="material-symbols-rounded" aria-hidden="true">add_photo_alternate</span>
         </button>
         <button class="icon-button" id="add-photo-button" type="button" aria-label="Open camera">
           <span class="material-symbols-rounded" aria-hidden="true">add_a_photo</span>
@@ -40,7 +40,14 @@
       type="file"
       accept="image/*"
       capture="environment"
-      aria-label="Choose or take a workout photo"
+      aria-label="Take a workout photo"
+    />
+    <input
+      id="gallery-picker"
+      class="visually-hidden"
+      type="file"
+      accept="image/*"
+      aria-label="Choose a workout photo from your gallery"
     />
 
     <div class="entry-flow" id="entry-flow" hidden>

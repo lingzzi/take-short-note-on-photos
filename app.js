@@ -8,7 +8,9 @@ const maxPhotoHeight = 1440;
 const maxPhotoBytes = 350 * 1024;
 
 const addPhotoButton = document.querySelector("#add-photo-button");
+const galleryPhotoButton = document.querySelector("#gallery-photo-button");
 const photoPicker = document.querySelector("#photo-picker");
+const galleryPicker = document.querySelector("#gallery-picker");
 const entryFlow = document.querySelector("#entry-flow");
 const entryPhoto = document.querySelector("#entry-photo");
 const noteForm = document.querySelector("#note-form");
@@ -26,6 +28,7 @@ let database;
 let pendingPhoto;
 let pendingPhotoUrl;
 let currentEntry;
+let entryTriggerButton = addPhotoButton;
 let flowMode = "add";
 let savedEntries = [];
 
@@ -210,12 +213,6 @@ function handleCardActivation(event) {
 }
 
 function appendEntry(entry, photoUrl) {
-  const shortestColumn = photoColumns.reduce((shortest, column) => {
-    const columnBottom = column.getBoundingClientRect().bottom;
-    const shortestBottom = shortest.getBoundingClientRect().bottom;
-    return columnBottom < shortestBottom ? column : shortest;
-  }, photoColumns[0]);
-
   const card = createWorkoutCard(entry, photoUrl);
   card.addEventListener("click", handleCardActivation);
   card.addEventListener("keydown", (event) => {
@@ -224,9 +221,19 @@ function appendEntry(entry, photoUrl) {
       handleCardActivation({ currentTarget: card });
     }
   });
-  shortestColumn.append(card);
+  photoColumns[savedEntries.length % photoColumns.length].append(card);
   document.querySelector(".photo-grid").classList.remove("photo-grid--empty");
   savedEntries.push(entry);
+}
+
+function reorderWorkoutCards() {
+  savedEntries.forEach((entry, index) => {
+    const card = document.querySelector(`[data-entry-id="${CSS.escape(entry.id)}"]`);
+    if (!card) {
+      throw new Error("A saved workout card could not be found while updating the gallery.");
+    }
+    photoColumns[index % photoColumns.length].append(card);
+  });
 }
 
 function showError(element, message) {
@@ -298,27 +305,37 @@ function closeEntryFlow() {
   }
 
   photoPicker.value = "";
+  galleryPicker.value = "";
   clearError(flowError);
-  addPhotoButton.focus({ preventScroll: true });
+  entryTriggerButton.focus({ preventScroll: true });
 }
 
 addPhotoButton.addEventListener("click", () => {
+  entryTriggerButton = addPhotoButton;
   photoPicker.click();
 });
 
-photoPicker.addEventListener("change", async () => {
-  const [file] = photoPicker.files ?? [];
+galleryPhotoButton.addEventListener("click", () => {
+  entryTriggerButton = galleryPhotoButton;
+  galleryPicker.click();
+});
+
+async function handlePhotoSelection(event) {
+  const picker = event.currentTarget;
+  const [file] = picker.files ?? [];
   if (!file) return;
 
   if (!file.type.startsWith("image/")) {
     showError(appError, "Please choose an image file.");
-    photoPicker.value = "";
+    picker.value = "";
     return;
   }
 
   clearError(appError);
   addPhotoButton.disabled = true;
+  galleryPhotoButton.disabled = true;
   addPhotoButton.setAttribute("aria-busy", "true");
+  galleryPhotoButton.setAttribute("aria-busy", "true");
 
   try {
     const optimizedPhoto = await optimizePhoto(file);
@@ -326,12 +343,17 @@ photoPicker.addEventListener("change", async () => {
   } catch (error) {
     console.error("Unable to process selected workout photo.", error);
     showError(appError, error instanceof Error ? error.message : "Could not process this photo.");
-    photoPicker.value = "";
+    picker.value = "";
   } finally {
     addPhotoButton.disabled = false;
+    galleryPhotoButton.disabled = false;
     addPhotoButton.removeAttribute("aria-busy");
+    galleryPhotoButton.removeAttribute("aria-busy");
   }
-});
+}
+
+photoPicker.addEventListener("change", handlePhotoSelection);
+galleryPicker.addEventListener("change", handlePhotoSelection);
 
 noteForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -383,6 +405,7 @@ cancelEntryButton.addEventListener("click", async () => {
     await deleteEntry(currentEntry.id);
     card?.remove();
     savedEntries = savedEntries.filter((entry) => entry.id !== currentEntry.id);
+    reorderWorkoutCards();
     document.querySelector(".photo-grid").classList.toggle("photo-grid--empty", savedEntries.length === 0);
     if (cardImageUrl && cardImageUrl.startsWith("blob:")) {
       URL.revokeObjectURL(cardImageUrl);
@@ -452,6 +475,20 @@ window.addEventListener("pagehide", () => {
   }
   objectUrls.clear();
 });
+
+function updateVisualViewport() {
+  const viewport = window.visualViewport;
+  document.documentElement.style.setProperty("--visual-viewport-top", `${viewport?.offsetTop ?? 0}px`);
+  document.documentElement.style.setProperty(
+    "--visual-viewport-height",
+    `${viewport?.height ?? window.innerHeight}px`,
+  );
+}
+
+updateVisualViewport();
+window.addEventListener("resize", updateVisualViewport);
+window.visualViewport?.addEventListener("resize", updateVisualViewport);
+window.visualViewport?.addEventListener("scroll", updateVisualViewport);
 
 async function initialize() {
   try {

@@ -199,10 +199,18 @@ body.has-entry-flow {
 .entry-flow {
   position: fixed;
   z-index: 10;
-  inset: 0;
+  top: var(--visual-viewport-top, 0px);
+  right: 0;
+  left: 0;
+  height: var(--visual-viewport-height, 100dvh);
   overflow-y: auto;
   background: var(--page);
   overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.entry-flow::-webkit-scrollbar {
+  display: none;
 }
 
 .entry-flow__content {
@@ -210,10 +218,11 @@ body.has-entry-flow {
   display: flex;
   width: 100%;
   max-width: 640px;
+  height: 100%;
   min-height: 100%;
   flex-direction: column;
   margin-inline: auto;
-  padding: max(16px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) 24px 0;
 }
 
 .entry-photo {
@@ -237,13 +246,17 @@ body.has-entry-flow {
 }
 
 .note-sheet {
-  position: relative;
-  z-index: 1;
+  position: fixed;
+  z-index: 11;
+  right: 0;
+  bottom: max(0px, calc(100vh - var(--visual-viewport-top, 0px) - var(--visual-viewport-height, 100dvh)));
+  left: 0;
   display: flex;
-  flex: 1 0 auto;
+  width: 100%;
+  max-width: 640px;
   flex-direction: column;
   gap: 24px;
-  margin-top: -40px;
+  margin-inline: auto;
   padding: 28px 24px max(24px, env(safe-area-inset-bottom));
   border-radius: 30px 30px 0 0;
   background: #faf9f7;
